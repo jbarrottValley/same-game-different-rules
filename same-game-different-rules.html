@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Same Game. Different Rules.</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121b2e; --text:#e9eefc; --muted:#a9b5d6; --accent:#7aa2ff; --good:#45d483; --bad:#ff6b6b; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 20% 10%, #16254a, var(--bg)); color:var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: var(--muted); line-height: 1.5; }
+    .grid { display: grid; gap: 16px; grid-template-columns: 1.2fr 0.8fr; }
+    @media (max-width: 860px){ .grid{ grid-template-columns:1fr; } }
+    .panel { background: rgba(18,27,46,.85); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .pill { display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); color: var(--muted); }
+    .pill b { color: var(--text); }
+    button { cursor:pointer; border: 1px solid rgba(255,255,255,.12); background: linear-gradient(180deg, rgba(122,162,255,.22), rgba(122,162,255,.10)); color: var(--text); padding: 10px 12px; border-radius: 12px; font-weight: 600; }
+    button.secondary { background: rgba(255,255,255,.06); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .cardTitle { font-size: 18px; margin: 0 0 6px; }
+    .choices { display:grid; gap:10px; margin-top:12px; }
+    .choice { padding: 12px; border-radius: 12px; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
+    .choice:hover { border-color: rgba(122,162,255,.35); }
+    .choice small { display:block; color: var(--muted); margin-top:6px; }
+    .log { max-height: 260px; overflow:auto; padding-right:6px; }
+    .logItem { padding: 10px; border-radius: 12px; border:1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.12); margin-bottom:10px; }
+    .delta.good { color: var(--good); }
+    .delta.bad { color: var(--bad); }
+    .footer { margin-top: 20px; font-size: 12px; color: var(--muted); }
+    .hidden { display:none; }
+    .hr { height:1px; background: rgba(255,255,255,.10); margin: 12px 0; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; padding: 2px 6px; border:1px solid rgba(255,255,255,.15); border-radius: 6px; color: var(--muted); }
+    textarea { width: 100%; min-height: 90px; border-radius: 12px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.18); color: var(--text); padding: 10px; }
+    input[type="text"] { width: 100%; border-radius: 12px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.18); color: var(--text); padding: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>The Same Game. Different Rules.</h1>
+    <p>
+      A short, single-player experience about how two equally capable people can face different friction in common workplace moments.
+      You’ll play a “career path” with scenario cards. At the end, you’ll see the reveal.
+    </p>
+
+    <div class="grid">
+      <div class="panel">
+        <div id="setup">
+          <h2 style="margin:0 0 8px;">Start</h2>
+          <p style="margin-top:0;">
+            This is not a test. It’s a perspective exercise. You can stop anytime.
+          </p>
+
+          <label style="display:block; margin:12px 0 6px;">Name (optional)</label>
+          <input id="playerName" type="text" placeholder="e.g., Joanne" />
+
+          <div class="row" style="margin-top:12px;">
+            <button id="startBtn">Start game</button>
+            <button id="startFixedBtn" class="secondary" title="For demos: choose Track A or B explicitly">Start (choose track)</button>
+          </div>
+
+          <div id="chooseTrack" class="hidden" style="margin-top:12px;">
+            <p style="margin:10px 0 8px;">Choose a track (normally hidden):</p>
+            <div class="row">
+              <button class="secondary" onclick="startGame('A')">Track A</button>
+              <button class="secondary" onclick="startGame('B')">Track B</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <p style="margin:0;">
+            Tip: Use <span class="kbd">Tab</span> to move through buttons and <span class="kbd">Enter</span> to select.
+          </p>
+        </div>
+
+        <div id="game" class="hidden">
+          <div class="row" style="justify-content:space-between;">
+            <div class="row">
+              <span class="pill">Step <b id="stepNow">1</b>/<span id="stepTotal">8</span></span>
+              <span class="pill">Progress <b id="progress">0</b></span>
+              <span class="pill">Energy <b id="energy">3</b></span>
+            </div>
+            <button class="secondary" onclick="resetAll()">Restart</button>
+          </div>
+
+          <div style="margin-top:14px;">
+            <h2 class="cardTitle" id="cardTitle">Card title</h2>
+            <p id="cardPrompt" style="margin:0;">Card prompt</p>
+
+            <div class="choices" id="choices"></div>
+          </div>
+
+          <div class="hr"></div>
+          <p style="margin:0;">
+            <b>What’s happening?</b> You’re moving through typical “career moments.” Some outcomes add friction.
+          </p>
+        </div>
+
+        <div id="reveal" class="hidden">
+          <h2 style="margin:0 0 8px;">Reveal</h2>
+          <p id="revealLine" style="margin-top:0;"></p>
+
+          <div class="panel" style="background: rgba(255,255,255,.04);">
+            <h3 style="margin:0 0 8px;">What this game was illustrating</h3>
+            <ul style="margin:0; color:var(--muted); line-height:1.6;">
+              <li>Same capability + effort can still produce different outcomes.</li>
+              <li>Bias often shows up as small, repeated frictions (credit, tone policing, risk assumptions).</li>
+              <li>Over time, compounding frictions affect visibility, confidence, retention, and leadership pipelines.</li>
+            </ul>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3 style="margin:0 0 8px;">Quick stats (edit to match what you want to share)</h3>
+          <div class="panel" style="background: rgba(255,255,255,.04);">
+            <ul style="margin:0; color:var(--muted); line-height:1.7;">
+              <li><b>Women in tech workforce:</b> ~25% (example placeholder)</li>
+              <li><b>Women in senior leadership:</b> lower representation than workforce share (placeholder)</li>
+              <li><b>Common barriers reported:</b> mentorship/sponsorship gaps, biased feedback, double bind on assertiveness, higher burnout/attrition (summary)</li>
+              <li><b>C-suite representation:</b> ~6% (example placeholder)</li>
+            </ul>
+            <p class="footer" style="margin-top:10px;">
+              Add sources here if publishing broadly (e.g., industry reports or Canadian/Manitoba references).
+            </p>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3 style="margin:0 0 8px;">Optional reflection</h3>
+          <p style="margin-top:0;">If you want, jot a quick thought (for yourself). You can screenshot or copy it.</p>
+          <textarea id="reflection" placeholder="What moment stood out? What would change the outcome?"></textarea>
+
+          <div class="row" style="margin-top:12px;">
+            <button onclick="copyReflection()">Copy reflection</button>
+            <button class="secondary" onclick="resetAll()">Play again</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 style="margin:0 0 8px;">Activity Log</h2>
+        <p style="margin-top:0;">A running record of choices and outcomes (private to this device).</p>
+        <div class="log" id="log"></div>
+
+        <div class="hr"></div>
+        <h3 style="margin:0 0 8px;">Facilitator note (optional)</h3>
+        <p style="margin-top:0;">
+          If you run this in a meeting, ask people to compare what “felt fair” vs what “felt familiar,” then share the stats at the end.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      Built as a single HTML file. No tracking, no analytics by default. You can host it as a static page.
+    </div>
+  </div>
+
+<script>
+  // --- Game state ---
+  let state = {
+    name: "",
+    track: null,        // 'A' or 'B' (hidden until reveal)
+    step: 0,
+    total: 8,
+    progress: 0,
+    energy: 3,
+    deck: [],
+    log: []
+  };
+
+  // --- Card deck ---
+  // Each card has title, prompt, and choices. Each choice has text plus per-track effects.
+  // Effects: progressDelta, energyDelta, note (logged). Negative energy represents cognitive load/friction.
+  const CARDS = [
+    {
+      id: "stretch",
+      title: "Stretch assignment",
+      prompt: "A high-visibility project opens up. You’re asked to lead it.",
+      choices: [
+        {
+          text: "Say yes and ask what success looks like",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Clarity is rewarded; you’re seen as ready." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Clarity helps, but you still feel added scrutiny." }
+          }
+        },
+        {
+          text: "Say yes, but downplay your experience",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "You’re still viewed as capable." },
+            B: { progressDelta: 0, energyDelta: -1, note: "Self-doubt compounds; you’re watched more closely." }
+          }
+        }
+      ]
+    },
+    {
+      id: "feedback",
+      title: "Performance feedback",
+      prompt: "You receive feedback after a strong quarter.",
+      choices: [
+        {
+          text: "Ask for impact-based examples and next steps",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Feedback focuses on outcomes and growth." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Feedback includes more tone/style notes than impact." }
+          }
+        },
+        {
+          text: "Accept feedback as-is and move on",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "Momentum continues." },
+            B: { progressDelta: 0, energyDelta: -1, note: "Ambiguity lingers; you replay it later." }
+          }
+        }
+      ]
+    },
+    {
+      id: "raise",
+      title: "Compensation conversation",
+      prompt: "It’s time to discuss compensation. You’ve delivered measurable results.",
+      choices: [
+        {
+          text: "Ask directly for a specific raise range",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Direct ask is viewed as confident." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Direct ask triggers second-guessing and extra justification." }
+          }
+        },
+        {
+          text: "Hint at a raise and wait for the response",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "Manager fills in the gap." },
+            B: { progressDelta: 0, energyDelta: -1, note: "Ambiguity leads to a slower outcome." }
+          }
+        }
+      ]
+    },
+    {
+      id: "assertiveness",
+      title: "Pushback in a meeting",
+      prompt: "You disagree with a plan that could create avoidable risk. You speak up firmly.",
+      choices: [
+        {
+          text: "State the risk clearly and propose an alternative",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Firm pushback reads as decisive." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Same pushback is more likely to be read as ‘difficult’." }
+          }
+        },
+        {
+          text: "Soften your language to avoid friction",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "Still credited for being thoughtful." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Extra emotional labour; message may lose urgency." }
+          }
+        }
+      ]
+    },
+    {
+      id: "credit",
+      title: "Credit & visibility",
+      prompt: "Your idea is repeated later by someone else in the room.",
+      choices: [
+        {
+          text: "Say: “Yes — building on what I shared earlier…”",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "You’re comfortably recognized as the originator." },
+            B: { progressDelta: 1, energyDelta: -1, note: "You reclaim credit, but it costs social energy." }
+          }
+        },
+        {
+          text: "Let it go to keep the peace",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "Credit still tends to stick to you." },
+            B: { progressDelta: 0, energyDelta: -1, note: "Visibility loss compounds over time." }
+          }
+        }
+      ]
+    },
+    {
+      id: "likeability",
+      title: "The likeability bind",
+      prompt: "You have to choose how to lead in a tense moment.",
+      choices: [
+        {
+          text: "Prioritize harmony and being liked",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "No penalty — you’re still seen as leader-like." },
+            B: { progressDelta: 0, energyDelta: -1, note: "You’re seen as pleasant, but not always ‘leadership-ready’." }
+          }
+        },
+        {
+          text: "Prioritize outcomes and clear accountability",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Clear accountability is rewarded." },
+            B: { progressDelta: 1, energyDelta: -1, note: "Outcome focus can trigger a reputation hit." }
+          }
+        }
+      ]
+    },
+    {
+      id: "sponsor",
+      title: "Mentorship & sponsorship",
+      prompt: "A senior leader has an opening to sponsor someone for a big opportunity.",
+      choices: [
+        {
+          text: "Ask directly to be considered",
+          effects: {
+            A: { progressDelta: 2, energyDelta: 0, note: "Self-advocacy is normalized." },
+            B: { progressDelta: 1, energyDelta: -1, note: "You weigh risks of being perceived as pushy." }
+          }
+        },
+        {
+          text: "Wait to be noticed",
+          effects: {
+            A: { progressDelta: 1, energyDelta: 0, note: "You’re more likely to be assumed ready." },
+            B: { progressDelta: 0, energyDelta: -1, note: "Visibility gaps widen." }
+          }
+        }
+      ]
+    },
+    {
+      id: "exec",
+      title: "Executive consideration",
+      prompt: "You’re eligible for an executive-track conversation. Roll the dice.",
+      choices: [
+        {
+          text: "Roll",
+          effects: {
+            // We'll compute this one dynamically
+            A: { progressDelta: 0, energyDelta: 0, note: "" },
+            B: { progressDelta: 0, energyDelta: 0, note: "" }
+          },
+          dynamic: true
+        }
+      ]
+    }
+  ];
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function setVisible(id){
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.add("hidden");
+    document.getElementById("reveal").classList.add("hidden");
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  function startGame(track=null){
+    state.name = document.getElementById("playerName").value.trim();
+    state.track = track || (Math.random() < 0.5 ? "A" : "B");
+    state.step = 0;
+    state.total = 8;
+    state.progress = 0;
+    state.energy = 3;
+    state.log = [];
+    state.deck = shuffle(CARDS).slice(0, state.total);
+
+    document.getElementById("log").innerHTML = "";
+    document.getElementById("stepTotal").textContent = String(state.total);
+    setVisible("game");
+    nextCard();
+  }
+
+  function nextCard(){
+    state.step += 1;
+    document.getElementById("stepNow").textContent = String(state.step);
+    document.getElementById("progress").textContent = String(state.progress);
+    document.getElementById("energy").textContent = String(state.energy);
+
+    const card = state.deck[state.step - 1];
+    document.getElementById("cardTitle").textContent = card.title;
+    document.getElementById("cardPrompt").textContent = card.prompt;
+
+    const choicesDiv = document.getElementById("choices");
+    choicesDiv.innerHTML = "";
+
+    card.choices.forEach((c, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "choice";
+      btn.type = "button";
+      btn.innerHTML = `${c.text}<small>Choose option ${idx+1}</small>`;
+      btn.onclick = () => applyChoice(card, c);
+      choicesDiv.appendChild(btn);
+    });
+  }
+
+  function applyChoice(card, choice){
+    let eff = choice.effects[state.track];
+
+    // Dynamic dice logic for exec card
+    if(choice.dynamic){
+      const roll = 1 + Math.floor(Math.random()*6);
+      // Track A advances on 3/6 outcomes, Track B advances on 1/6 outcomes (adjust as desired)
+      const aWin = [2,4,6].includes(roll);
+      const bWin = [6].includes(roll);
+      const win = (state.track === "A") ? aWin : bWin;
+
+      eff = win
+        ? { progressDelta: 3, energyDelta: 0, note: `Rolled a ${roll}. You advance to an executive-track conversation.` }
+        : { progressDelta: 0, energyDelta: -1, note: `Rolled a ${roll}. “Not this cycle.” The door feels harder to open.` };
+    }
+
+    state.progress += eff.progressDelta;
+    state.energy += eff.energyDelta;
+
+    const deltaTag = (eff.progressDelta >= 0 ? `<span class="delta good">+${eff.progressDelta} progress</span>` : `<span class="delta bad">${eff.progressDelta} progress</span>`);
+    const energyTag = (eff.energyDelta === 0 ? "" : (eff.energyDelta > 0 ? `<span class="delta good"> +${eff.energyDelta} energy</span>` : `<span class="delta bad"> ${eff.energyDelta} energy</span>`));
+
+    logItem(`${card.title}`, `${choice.text}`, `${deltaTag}${energyTag ? " • " + energyTag : ""}`, eff.note);
+
+    // End?
+    if(state.step >= state.total){
+      doReveal();
+    } else {
+      nextCard();
+    }
+  }
+
+  function logItem(title, choice, deltas, note){
+    const div = document.createElement("div");
+    div.className = "logItem";
+    div.innerHTML = `<b>${escapeHtml(title)}</b><br>${escapeHtml(choice)}<br>${deltas}<br><small style="color:var(--muted)">${escapeHtml(note)}</small>`;
+    document.getElementById("log").prepend(div);
+  }
+
+  function doReveal(){
+    setVisible("reveal");
+
+    const namePart = state.name ? `${state.name}, you` : "You";
+    const trackLabel = state.track; // still generic
+    const line = `${namePart} played Track ${trackLabel}. Both tracks start equally capable — but the game adds different friction at key moments.`;
+
+    document.getElementById("revealLine").textContent = line;
+
+    // You can optionally add a second line that reveals what Track A/B represent in your org context.
+    // For example:
+    // Track A = “the experience more commonly reported by men”
+    // Track B = “the experience more commonly reported by women”
+  }
+
+  function resetAll(){
+    setVisible("setup");
+    document.getElementById("chooseTrack").classList.add("hidden");
+  }
+
+  document.getElementById("startBtn").addEventListener("click", () => startGame());
+  document.getElementById("startFixedBtn").addEventListener("click", () => {
+    const ct = document.getElementById("chooseTrack");
+    ct.classList.toggle("hidden");
+  });
+
+  function copyReflection(){
+    const txt = document.getElementById("reflection").value.trim();
+    if(!txt){ alert("Nothing to copy yet."); return; }
+    navigator.clipboard.writeText(txt).then(() => alert("Copied!"));
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[s]));
+  }
+</script>
+</body>
+</html>
