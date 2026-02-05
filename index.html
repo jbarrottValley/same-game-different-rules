@@ -5,7 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>The Same Game. Different Rules.</title>
   <style>
-    :root { --bg:#0b1220; --card:#121b2e; --text:#e9eefc; --muted:#a9b5d6; --accent:#7aa2ff; --good:#45d483; --bad:#ff6b6b; }
+  :root {
+    --bg: #0f1a17;        /* very dark green-tinted background */
+    --panel: #24423a;     /* corporate dark green */
+    --card: #1a332d;      /* slightly lighter card surface */
+    --text: #f1f7f5;      /* soft off-white */
+    --muted: #a9c5bb;     /* muted green-grey */
+    --accent: #6bc285;    /* Valley Fiber primary green */
+    --good: #6bc285;      /* progress / positive movement */
+    --bad: #f59e0b;       /* warm amber (avoids punitive red) */
+  }
+</style>
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 20% 10%, #16254a, var(--bg)); color:var(--text); }
     .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
     h1 { margin: 0 0 8px; font-size: 28px; }
@@ -472,3 +482,4 @@
 </script>
 </body>
 </html>
+
