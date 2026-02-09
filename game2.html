@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tech Career Paths</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+ <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       box-sizing: border-box;
@@ -88,7 +88,7 @@
  </head>
  <body class="h-full font-body">
   <div id="app" class="h-full w-full overflow-auto"></div>
-  <script>
+<script>
     const defaultConfig = {
       background_color: '#ffffff',
       surface_color: '#f8faf8',
@@ -100,7 +100,6 @@
       game_title: 'Parallel Paths',
       intro_heading: 'Two Careers, One Industry'
     };
-
     let config = { ...defaultConfig };
 
     // Game State
@@ -433,23 +432,22 @@
 
       let content = '';
 
-      switch(gameState.screen) {
-        case 'intro':
-          content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
-          break;
-        case 'select':
-          content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-          break;
-        case 'playing':
-          content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-          break;
-        case 'outcome':
-          content = renderOutcome(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-          break;
-        case 'stats':
-          content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-          break;
-      }
+     switch (gameState.screen) {
+  case 'intro':
+    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+    break;
+  case 'select':
+    content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+  case 'playing':
+    content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+  case 'stats':
+    content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+  default:
+    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+}
 
       app.innerHTML = content;
       attachEventListeners();
@@ -973,50 +971,66 @@
     }
 
     // Game Functions
-    function startGame() {
-      gameState.screen = 'select';
-      render();
-    }
+    // ---------------------------
+// Game Functions (DROP-IN)
+// ---------------------------
 
-    function selectCharacter(char) {
-      gameState.selectedCharacter = char;
-      render();
-    }
+function startGame() {
+  gameState.screen = 'select';
+  render();
+}
 
-    function beginScenarios() {
-      if (!gameState.selectedCharacter) return;
-      gameState.screen = 'playing';
-      gameState.currentScenario = 0;
-      // Reset stats
-      gameState.alexStats = { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 };
-      gameState.jordanStats = { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 };
-      render();
-    }
+function selectCharacter(charKey) {
+  gameState.selectedCharacter = charKey;
+  render();
+}
 
-    function seeOtherPerspective() {
-      gameState.selectedCharacter = gameState.selectedCharacter === 'alex' ? 'jordan' : 'alex';
-      render();
+// Use a single source of truth for starting stats per character
+const startingStatsByCharacter = {
+  alex: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+  jordan: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+  priya: { salary: 72000, promotions: 0, confidence: 75, burnout: 15, mentors: 0 },
+  alex_indigenous: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 }
+};
+
+function beginScenarios() {
+  if (!gameState.selectedCharacter) return;
+
+  gameState.screen = 'playing';
+  gameState.currentScenario = 0;
+
+  // Reset stats for every character you have defined
+  Object.keys(characters).forEach((charKey) => {
+    const statKey = `${charKey}Stats`;
+    const base = startingStatsByCharacter[charKey];
+
+    if (base) {
+      // Make a fresh copy so you don’t mutate the template
+      gameState[statKey] = { ...base };
     }
+  });
+
+  render();
+}
 
 function nextScenario() {
   const scenario = scenarios[gameState.currentScenario];
 
-  const alexOutcome = scenario.outcomes.alex;
-  const jordanOutcome = scenario.outcomes.jordan;
+  // Apply outcomes to ALL characters so "See other paths" reflects the same timeline
+  Object.keys(characters).forEach((charKey) => {
+    const outcome = scenario.outcomes?.[charKey];
+    const statKey = `${charKey}Stats`;
+    const stats = gameState[statKey];
 
-  // Update Alex stats
-  gameState.alexStats.salary += alexOutcome.salaryChange;
-  gameState.alexStats.confidence += alexOutcome.confidenceChange;
-  gameState.alexStats.burnout += alexOutcome.burnoutChange;
-  gameState.alexStats.mentors += alexOutcome.mentorChange;
-  if (alexOutcome.promoted) gameState.alexStats.promotions++;
+    if (!outcome || !stats) return;
 
-  // Update Jordan stats
-  gameState.jordanStats.salary += jordanOutcome.salaryChange;
-  gameState.jordanStats.confidence += jordanOutcome.confidenceChange;
-  gameState.jordanStats.burnout += jordanOutcome.burnoutChange;
-  gameState.jordanStats.mentors += jordanOutcome.mentorChange;
-  if (jordanOutcome.promoted) gameState.jordanStats.promotions++;
+    stats.salary += outcome.salaryChange || 0;
+    stats.confidence += outcome.confidenceChange || 0;
+    stats.burnout += outcome.burnoutChange || 0;
+    stats.mentors += outcome.mentorChange || 0;
+
+    if (outcome.promoted) stats.promotions++;
+  });
 
   if (gameState.currentScenario < scenarios.length - 1) {
     gameState.currentScenario++;
@@ -1027,93 +1041,37 @@ function nextScenario() {
   }
 }
 
+function resetGame() {
+  gameState = {
+    screen: 'intro',
+    selectedCharacter: null,
+    currentYear: 1,
+    totalYears: 5,
+    scenarios: [],
+    currentScenario: 0,
 
-    function resetGame() {
-      gameState = {
-        screen: 'intro',
-        selectedCharacter: null,
-        currentYear: 1,
-        totalYears: 5,
-        scenarios: [],
-        currentScenario: 0,
-        alexStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
-        jordanStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
-        revealedStats: [],
-        playerChoices: []
-      };
-      render();
-    }
+    // Reset ALL character stats
+    alexStats: { ...startingStatsByCharacter.alex },
+    jordanStats: { ...startingStatsByCharacter.jordan },
+    priyaStats: { ...startingStatsByCharacter.priya },
+    alex_indigenousStats: { ...startingStatsByCharacter.alex_indigenous },
 
-    // Make functions globally accessible
-    window.startGame = startGame;
-    window.selectCharacter = selectCharacter;
-    window.beginScenarios = beginScenarios;
-    window.seeOtherPerspective = seeOtherPerspective;
-    window.nextScenario = nextScenario;
-    window.resetGame = resetGame;
-    window.switchCharacterTemporarily = switchCharacterTemporarily;
+    revealedStats: [],
+    playerChoices: [],
+    allCharsPreviewed: false
+  };
 
+  render();
+}
 
-    // Element SDK Integration
-    async function onConfigChange(newConfig) {
-      config = { ...defaultConfig, ...newConfig };
-      render();
-    }
+// Make functions globally accessible
+window.startGame = startGame;
+window.selectCharacter = selectCharacter;
+window.beginScenarios = beginScenarios;
+window.nextScenario = nextScenario;
+window.resetGame = resetGame;
+window.switchCharacterTemporarily = switchCharacterTemporarily;
 
-    function mapToCapabilities(cfg) {
-      return {
-        recolorables: [
-          {
-            get: () => cfg.background_color || defaultConfig.background_color,
-            set: (value) => { cfg.background_color = value; window.elementSdk.setConfig({ background_color: value }); }
-          },
-          {
-            get: () => cfg.surface_color || defaultConfig.surface_color,
-            set: (value) => { cfg.surface_color = value; window.elementSdk.setConfig({ surface_color: value }); }
-          },
-          {
-            get: () => cfg.text_color || defaultConfig.text_color,
-            set: (value) => { cfg.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
-          },
-          {
-            get: () => cfg.primary_action || defaultConfig.primary_action,
-            set: (value) => { cfg.primary_action = value; window.elementSdk.setConfig({ primary_action: value }); }
-          },
-          {
-            get: () => cfg.secondary_action || defaultConfig.secondary_action,
-            set: (value) => { cfg.secondary_action = value; window.elementSdk.setConfig({ secondary_action: value }); }
-          }
-        ],
-        borderables: [],
-        fontEditable: {
-          get: () => cfg.font_family || defaultConfig.font_family,
-          set: (value) => { cfg.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
-        },
-        fontSizeable: {
-          get: () => cfg.font_size || defaultConfig.font_size,
-          set: (value) => { cfg.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
-        }
-      };
-    }
-
-    function mapToEditPanelValues(cfg) {
-      return new Map([
-        ['game_title', cfg.game_title || defaultConfig.game_title],
-        ['intro_heading', cfg.intro_heading || defaultConfig.intro_heading]
-      ]);
-    }
-
-    // Initialize
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    } else {
-      render();
-    }
-  </script>
+</script>
 </body>
-</html>
+</html>   
