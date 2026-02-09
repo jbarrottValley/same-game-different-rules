@@ -188,49 +188,50 @@ stat: {
             { title: 'Belonging Initiatives', desc: 'Establish ERGs, affinity groups, and allyship training. Make inclusion a KPI for managers (not just a nice-to-have).' }
           ]
       {
-        year: 1,
+        {
+  year: 1,
   title: 'Education Background Check',
-situations: {
-  alex: 'Your education comes up casually in conversation. People mention they know others from your program and swap stories about shared professors and projects.',
-  jordan: 'Your education comes up too, but the conversation moves quickly on. Later, you notice people explaining things to you that they didn’t explain to others.',
-  priya: 'Your degree is from outside Canada. During onboarding, people ask clarifying questions about coursework and grading systems, often circling back to how things are “usually done here.”',
-  jerry_indigenous: 'You share that you’re largely self-taught with some formal training. People nod, but you notice your ideas are more likely to be double-checked or validated by someone else.'
-},
-outcomes: {
-  alex: {
-    salaryChange: 0,
-    promotionChance: 10,
-    confidenceChange: 15,
-    burnoutChange: 0,
-    mentorChange: 1,
-    text: 'Your background becomes a quiet credibility boost. People assume competence and involve you early in technical discussions.'
+  situations: {
+    alex: 'Your education comes up casually in conversation. People mention they know others from your program and swap stories about shared professors and projects.',
+    jordan: 'Your education comes up too, but the conversation moves quickly on. Later, you notice people explaining things to you that they didn’t explain to others.',
+    priya: 'Your degree is from outside Canada. During onboarding, people ask clarifying questions about coursework and grading systems, often circling back to how things are “usually done here.”',
+    jerry_indigenous: 'You share that you’re largely self-taught with some formal training. People nod, but you notice your ideas are more likely to be double-checked or validated by someone else.'
   },
-  jordan: {
-    salaryChange: 0,
-    promotionChance: 0,
-    confidenceChange: -15,
-    burnoutChange: 10,
-    mentorChange: 0,
-    text: 'You start noticing a pattern: you’re competent, but not immediately trusted. It’s subtle, but it means you work harder to be seen as “solid.”'
-  },
-  priya: {
-    salaryChange: -3000,
-    promotionChance: -10,
-    confidenceChange: -20,
-    burnoutChange: 20,
-    mentorChange: 0,
-    text: 'You spend extra time explaining your decisions and providing context others aren’t asked for. It slows your momentum and quietly chips away at your confidence.'
-  },
-  jerry_indigenous: {
-    salaryChange: 0,
-    promotionChance: -10,
-    confidenceChange: -15,
-    burnoutChange: 15,
-    mentorChange: 0,
-    text: 'Your work speaks for itself, but recognition comes later and with more scrutiny. You notice your contributions land more strongly when echoed by someone else.'
+  outcomes: {
+    alex: {
+      salaryChange: 0,
+      promotionChance: 10,
+      confidenceChange: 15,
+      burnoutChange: 0,
+      mentorChange: 1,
+      text: 'Your background becomes a quiet credibility boost. People assume competence and involve you early in technical discussions.'
+    },
+    jordan: {
+      salaryChange: 0,
+      promotionChance: 0,
+      confidenceChange: -5,
+      burnoutChange: 5,
+      mentorChange: 0,
+      text: 'Nothing overt is said, but you notice fewer assumptions of expertise. You spend more time clarifying decisions and justifying your approach.'
+    },
+    priya: {
+      salaryChange: 0,
+      promotionChance: -5,
+      confidenceChange: -10,
+      burnoutChange: 10,
+      mentorChange: 0,
+      text: 'You invest extra effort explaining context and decisions. While professional, the repeated scrutiny makes progress feel slower and more exhausting.'
+    },
+    jerry_indigenous: {
+      salaryChange: 0,
+      promotionChance: -5,
+      confidenceChange: -10,
+      burnoutChange: 10,
+      mentorChange: 0,
+      text: 'Your skills are respected, but validation often comes indirectly. You notice your ideas land more strongly when echoed by others.'
+    }
   }
-
-        },
+},
         stat: {
           title: 'Education & Representation',
           value: '66% of tech workers have a bachelor\'s degree or higher, but this creates barriers for those from non-traditional paths. Only 1.4% of Indigenous Peoples work in tech vs 4.8% of others.',
