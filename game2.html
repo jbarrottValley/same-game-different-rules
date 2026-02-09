@@ -455,6 +455,15 @@
       attachEventListeners();
     }
 
+  function switchCharacterTemporarily() {
+  const keys = Object.keys(characters); // ['alex','jordan','priya','alex_indigenous']
+  const current = gameState.selectedCharacter;
+  const idx = keys.indexOf(current);
+  const next = keys[(idx + 1) % keys.length];
+  gameState.selectedCharacter = next;
+  render();
+}
+
     function renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading) {
       return `
         <div class="min-h-full w-full flex items-center justify-center p-4 md:p-8">
