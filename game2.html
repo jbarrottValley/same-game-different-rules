@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Career Paths</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    .font-display { font-family: 'Space Mono', monospace; }
+    .font-body { font-family: 'DM Sans', sans-serif; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade { animation: fadeIn 0.6s ease-out forwards; }
+    .animate-slide { animation: slideIn 0.5s ease-out forwards; }
+    .animate-pulse-slow { animation: pulse 3s ease-in-out infinite; }
+    .animate-count { animation: countUp 0.4s ease-out forwards; }
+    
+    .stat-card {
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .progress-bar {
+      transition: width 1s ease-out;
+    }
+    
+    .scenario-option {
+      transition: all 0.2s ease;
+    }
+    
+    .scenario-option:hover {
+      transform: translateX(4px);
+    }
+    
+    .character-card {
+      transition: all 0.3s ease;
+    }
+    
+    .character-card:hover {
+      transform: scale(1.02);
+    }
+    
+    .character-card.selected {
+      ring: 3px solid;
+    }
+    
+    .timeline-dot {
+      transition: all 0.3s ease;
+    }
+    
+    .timeline-dot.active {
+      transform: scale(1.3);
+    }
+    
+    .reveal-stat {
+      animation: countUp 0.6s ease-out forwards;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full font-body">
+  <div id="app" class="h-full w-full overflow-auto"></div>
+  <script>
+    const defaultConfig = {
+      background_color: '#ffffff',
+      surface_color: '#f8faf8',
+      text_color: '#24423A',
+      primary_action: '#6BC285',
+      secondary_action: '#24423A',
+      font_family: 'DM Sans',
+      font_size: 16,
+      game_title: 'Parallel Paths',
+      intro_heading: 'Two Careers, One Industry'
+    };
+
+    let config = { ...defaultConfig };
+
+    // Game State
+    let gameState = {
+      screen: 'intro', // intro, select, playing, outcome, stats
+      selectedCharacter: null,
+      currentYear: 1,
+      totalYears: 5,
+      scenarios: [],
+      currentScenario: 0,
+      alexStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+      jordanStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+      priyaStats: { salary: 72000, promotions: 0, confidence: 75, burnout: 15, mentors: 0 },
+      alex_indigenousStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+      revealedStats: [],
+      playerChoices: [],
+      allCharsPreviewed: false
+    };
+
+    // Character definitions with expanded diversity
+    const characters = {
+      alex: {
+        name: 'Alex Chen',
+        identity: 'Man, majority background, Canadian-born',
+        emoji: '👨‍💻',
+        description: 'Alex graduated top of his class with a CS degree. He\'s ambitious, hardworking, and ready to make his mark in tech.',
+        background: 'majority'
+      },
+      jordan: {
+        name: 'Jordan Williams',
+        identity: 'Woman, Black Canadian, born in Canada',
+        emoji: '👩‍💻',
+        description: 'Jordan graduated top of her class with a CS degree. She\'s ambitious, hardworking, and ready to make her mark in tech.',
+        background: 'visible_minority'
+      },
+      priya: {
+        name: 'Priya Sharma',
+        identity: 'Woman, South Asian, immigrant on work permit',
+        emoji: '👩‍💻',
+        description: 'Priya earned her engineering degree in India and immigrated to Canada on a work permit. She\'s highly skilled and excited about Canadian tech.',
+        background: 'immigrant_temporary'
+      },
+      alex_indigenous: {
+        name: 'Alex Whitedog',
+        identity: 'Man, Indigenous Peoples, from northern Canada',
+        emoji: '👨‍💻',
+        description: 'Alex grew up on-reserve with limited broadband access but learned programming from online resources. He\'s self-taught and determined.',
+        background: 'indigenous'
+      }
+    };
+
+    // Comprehensive scenarios based on research data
+    const scenarios = [
+      {
+        year: 1,
+        title: 'First Day Onboarding',
+        situations: {
+          alex: 'You arrive for your first day. Your manager introduces you to the team and walks you through the office.',
+          jordan: 'You arrive for your first day and notice the office is mostly men. Your manager introduces you, but makes a comment about "diversity hires."',
+          priya: 'You arrive for your first day and struggle with the Canadian workplace culture. Your coworkers speak quickly and reference local pop culture you don\'t know.',
+          alex_indigenous: 'You arrive for your first day as one of the few Indigenous people in the office. People are curious about where you\'re from, asking repeatedly.'
+        },
+        outcomes: {
+          alex: { salaryChange: 0, promotionChance: 5, confidenceChange: 10, burnoutChange: 0, mentorChange: 1, text: 'Your manager takes you under his wing immediately. He invites you to lunch with senior engineers.' },
+          jordan: { salaryChange: 0, promotionChance: 0, confidenceChange: -10, burnoutChange: 10, mentorChange: 0, text: 'You feel uncomfortable from day one. The comment lingers with you all week.' },
+          priya: { salaryChange: -2000, promotionChance: 0, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, text: 'The cultural disconnect is isolating. You wonder if you made the right choice coming to Canada.' },
+          alex_indigenous: { salaryChange: 0, promotionChance: -5, confidenceChange: -10, burnoutChange: 5, mentorChange: 0, text: 'The constant questions about your background feel othering. You just want to be treated like any other developer.' }
+        },
+        stat: {
+          title: 'Visible Minorities in Tech',
+          value: 'While visible minorities are 44% of Canadian tech workers (overrepresented), they earn $14,200 less annually than non-visible minorities ($78,800 vs $93,000)',
+          source: 'Canada\'s Got Tech Talent Research 2024'
+        },
+        solutions: {
+          forIndividuals: [
+            { title: 'Connect with Community', desc: 'Join tech communities like Black Tech Can, PWN (Professional Women\'s Network), or your city\'s tech meetup groups. You\'re not alone.' },
+            { title: 'Document & Build Portfolio', desc: 'Start a public GitHub portfolio or blog. Visible work speaks louder than assumptions. Attend Manitoba Tech Week for networking.' },
+            { title: 'Find Your People', desc: 'Seek out Employee Resource Groups (ERGs) in your company or industry groups like TechGirls, Indigenous Tech Council, or immigrant tech associations.' }
+          ],
+          forLeaders: [
+            { title: 'Structured Introductions', desc: 'Create formal onboarding that pairs new hires with mentors from similar backgrounds. Track mentorship assignments to ensure equitable matching.' },
+            { title: 'Eliminate Coded Language', desc: 'Audit job descriptions and feedback for bias (e.g., "culture fit" often masks homogeneity). Train team on inclusive language.' },
+            { title: 'Belonging Initiatives', desc: 'Establish ERGs, affinity groups, and allyship training. Make inclusion a KPI for managers (not just a nice-to-have).' }
+          ]
+        }
+      },
+      {
+        year: 1,
+        title: 'Education Background Check',
+        situations: {
+          alex: 'Your CS degree from a top Canadian university is recognized immediately. Colleagues discuss the prestige of your program.',
+          jordan: 'Your degree is from the same top program, but colleagues seem surprised. "You don\'t seem like the typical grad from there," one says.',
+          priya: 'Your engineering degree is from India. Your manager questions whether the curriculum is "rigorous enough" compared to Canadian programs.',
+          alex_indigenous: 'You\'re mostly self-taught with some bootcamp training. Team members question your qualifications despite your strong GitHub portfolio.'
+        },
+        outcomes: {
+          alex: { salaryChange: 0, promotionChance: 10, confidenceChange: 15, burnoutChange: 0, mentorChange: 1, text: 'Your education is seen as a major asset. Senior developers want to learn from you.' },
+          jordan: { salaryChange: 0, promotionChance: 0, confidenceChange: -15, burnoutChange: 10, mentorChange: 0, text: 'Colleagues repeatedly question your qualifications despite identical credentials to others.' },
+          priya: { salaryChange: -3000, promotionChance: -10, confidenceChange: -20, burnoutChange: 20, mentorChange: 0, text: 'Your credentials are constantly questioned. You\'re assigned to review tasks "to verify your skills."' },
+          alex_indigenous: { salaryChange: 0, promotionChance: -10, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, text: 'Despite proven skills, you\'re treated as less experienced than peers with formal degrees.' }
+        },
+        stat: {
+          title: 'Education & Representation',
+          value: '66% of tech workers have a bachelor\'s degree or higher, but this creates barriers for those from non-traditional paths. Only 1.4% of Indigenous Peoples work in tech vs 4.8% of others.',
+          source: 'ICTC Census Analysis'
+        },
+        solutions: {
+          forIndividuals: [
+            { title: 'Credential Recognition Programs', desc: 'Look into World Education Services (WES) for credential assessment if you studied internationally. Organizations like CanImmigrate also help validate foreign credentials.' },
+            { title: 'Bootcamp to Career', desc: 'If self-taught, pursue recognized bootcamps (Lighthouse Labs, HackerYou) or online certs (Google Cloud, AWS). They signal rigor to skeptics.' },
+            { title: 'Speak Up About Bias', desc: 'When questioned unfairly, document it and report to HR. Connect with organizations like TechGirls or Indigenous Tech Council for solidarity.' }
+          ],
+          forLeaders: [
+            { title: 'Skills-Based Hiring', desc: 'Evaluate candidates on demonstrated skills, not pedigree. Use work samples and coding assessments instead of school prestige.' },
+            { title: 'Value Diverse Pathways', desc: 'Recognize bootcamp grads, self-taught developers, and international credentials. Create pathways for non-traditional talent.' },
+            { title: 'Bias Training on Education', desc: 'Train interviewers to avoid stereotyping based on school name or country. Implement blind resume reviews.' }
+          ]
+        }
+      },
+      {
+        year: 2,
+        title: 'The Code Review Dynamic',
+        situations: {
+          alex: 'Your code review feedback is focused on technical merit and architecture decisions.',
+          jordan: 'Your code is sound, but feedback comments include "You could explain this better" and "Communication is key here."',
+          priya: 'Your code is excellent, but the feedback is delayed. A manager says: "I need to make sure your English is clear enough for the team."',
+          alex_indigenous: 'Your code is reviewed carefully. Comments suggest your approach is "unconventional" even though it\'s technically superior.'
+        },
+        outcomes: {
+          alex: { salaryChange: 0, promotionChance: 10, confidenceChange: 15, burnoutChange: 0, mentorChange: 1, text: 'Colleagues praise your architectural thinking. You\'re invited to design reviews.' },
+          jordan: { salaryChange: 0, promotionChance: 0, confidenceChange: -10, burnoutChange: 10, mentorChange: 0, text: 'You receive 2.5x more feedback about communication vs technical skills. Male peers don\'t get this feedback.' },
+          priya: { salaryChange: -2000, promotionChance: -5, confidenceChange: -20, burnoutChange: 15, mentorChange: 0, text: 'Your accent and background are highlighted as issues. Your technical skills are secondary.' },
+          alex_indigenous: { salaryChange: 0, promotionChance: 0, confidenceChange: -15, burnoutChange: 10, mentorChange: 0, text: 'Your innovative approach is questioned. You\'re asked to follow the "standard way" instead.' }
+        },
+        stat: {
+          title: 'Feedback Bias',
+          value: 'Women receive 2.5x more critical feedback about communication style rather than technical skills. Visible minorities often receive stereotyped feedback about cultural fit.',
+          source: 'Harvard Business Review & Catalyst Research'
+        },
+        solutions: {
+          forIndividuals: [
+            { title: 'Document Everything', desc: 'Keep records of biased feedback. Take screenshots. Note patterns. If it escalates, you have evidence for HR.' },
+            { title: 'Request Specific Feedback', desc: 'Ask code reviewers: "What specific technical issue should I address?" Demand technical, not subjective feedback.' },
+            { title: 'Find Advocates', desc: 'Build relationships with people who review your work fairly. Ask them to mentor or champion you in meetings.' }
+          ],
+          forLeaders: [
+            { title: 'Structured Code Review Process', desc: 'Use a rubric (technical, readability, performance, security). Apply it consistently to all reviewers. Train on bias.' },
+            { title: 'Audit Feedback Language', desc: 'Review past code comments. Are women/minorities receiving different feedback? Address disparities directly.' },
+            { title: 'Rotate Reviewers', desc: 'Don\'t let one person\'s biases dominate. Require multiple reviewers. Look for patterns of biased feedback and address.' }
+          ]
+        }
+      },
+      {
+        year: 2,
+        title: 'Promotion Opportunity',
+        situations: {
+          alex: 'You\'re recommended for a Senior Developer role. Your manager actively champions you in succession planning.',
+          jordan: 'You\'ve met all metrics for promotion, but you\'re told to "be patient" and "build more presence first."',
+          priya: 'You\'re offered a promotion but at $4,500 less than your non-immigrant coworker who got promoted to the same level.',
+          alex_indigenous: 'You\'re passed over for promotion. A colleague with less seniority is promoted. Feedback: "We need someone with more typical management background."'
+        },
+        outcomes: {
+          alex: { salaryChange: 12000, promotionChance: 0, confidenceChange: 20, burnoutChange: 0, mentorChange: 1, promoted: true, text: 'Promoted to Senior Developer at $87,000. Your manager publicly celebrates your advancement.' },
+          jordan: { salaryChange: 2000, promotionChance: 0, confidenceChange: -20, burnoutChange: 20, mentorChange: 0, promoted: false, text: 'You receive a small raise but no title change. The feedback feels subjective and discouraging.' },
+          priya: { salaryChange: 8500, promotionChance: 0, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, promoted: true, text: 'Promoted but at lower salary than male peers. You discover the pay gap and feel trapped—changing jobs means visa complications.' },
+          alex_indigenous: { salaryChange: 3000, promotionChance: 0, confidenceChange: -25, burnoutChange: 25, mentorChange: 0, promoted: false, text: 'Passed over despite stronger qualifications. You\'re told management "isn\'t quite the fit" for your background.' }
+        },
+        stat: {
+          title: 'The Promotion Gap',
+          value: 'For every 100 men promoted to manager, only 87 women are promoted. Immigrants earn $30,000+ less than citizen tech workers ($52,800 vs $88,000). Black tech workers earn significantly less than other visible minorities.',
+          source: 'ICTC & Census Data'
+        },
+        solutions: {
+          forIndividuals: [
+            { title: 'Build Your Case', desc: 'Track accomplishments, metrics, projects led. Ask for clear promotion criteria in writing. Don\'t wait to be "noticed"—advocate for yourself.' },
+            { title: 'Know Your Market Rate', desc: 'Use Glassdoor, levels.fyi, PayScale for salary data. Get written offers to increase your leverage. Immigrating? Know visa sponsorship impact.' },
+            { title: 'Get Peer Advocates', desc: 'Talk to successfully promoted people (especially those from your background). Ask what worked for them. Join groups like TechGirls, Black Tech Can.' }
+          ],
+          forLeaders: [
+            { title: 'Transparent Promotion Criteria', desc: 'Publish clear, measurable criteria for advancement. Use them consistently. Audit promotions for demographic patterns.' },
+            { title: 'Succession Planning by Identity', desc: 'Track who\'s being groomed for leadership. Are women/minorities in the pipeline? If not, fix it intentionally.' },
+            { title: 'Equal Pay Audits', desc: 'Review salary data by role, gender, race, immigration status. Fix inequities immediately. Document your commitment.' }
+          ]
+        }
+      },
+      {
+        year: 2,
+        title: 'Salary Negotiation',
+        situations: {
+          alex: 'You negotiate your next raise confidently. Your manager frames it positively: "You\'ve earned it."',
+          jordan: 'You negotiate for equal pay to male peers. Your manager says you\'re being "too ambitious" and "not a team player."',
+          priya: 'You try to negotiate your already-lower starting salary. Your manager says: "You should be happy to be here. This is better than India anyway."',
+          alex_indigenous: 'You negotiate your salary. Your manager questions if you can "handle higher responsibility."'
+        },
+        outcomes: {
+          alex: { salaryChange: 8000, promotionChance: 0, confidenceChange: 10, burnoutChange: 0, mentorChange: 0, text: 'You negotiate successfully to $95,000. Your manager respects your assertiveness.' },
+          jordan: { salaryChange: 3500, promotionChance: 0, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, text: 'You get a modest increase but face subtle retaliation for negotiating. The gap to male peers widens.' },
+          priya: { salaryChange: 1500, promotionChance: -5, confidenceChange: -25, burnoutChange: 20, mentorChange: 0, text: 'Your negotiation is shut down. You\'re reminded of your visa status. The implicit threat is clear.' },
+          alex_indigenous: { salaryChange: 2000, promotionChance: -5, confidenceChange: -20, burnoutChange: 15, mentorChange: 0, text: 'Questions about your capability undermine your negotiating position. You get a token raise.' }
+        },
+        stat: {
+          title: 'The Growing Pay Gap',
+          value: 'The gender pay gap in Canadian tech has tripled since 2016: $7,200 (2016) → $20,000 (2021). For women with Bachelor\'s degrees, the gap is $25,200. Non-permanent residents earn only $52,000 vs $89,800 for others.',
+          source: 'ICTC Census Analysis'
+        }
+      },
+      {
+        year: 3,
+        title: 'Mentorship & Sponsorship',
+        situations: {
+          alex: 'Multiple senior engineers mentor you and advocate for your career. You\'re included in informal leadership discussions.',
+          jordan: 'You struggle to find mentors. Male managers seem uncomfortable mentoring you. The few female mentors are overwhelmed.',
+          priya: 'You\'re not included in informal mentorship circles. Your manager is your only contact, and they don\'t advocate for you.',
+          alex_indigenous: 'You\'re not actively mentored by senior leaders. When you seek guidance, people seem surprised you want to move up.'
+        },
+        outcomes: {
+          alex: { salaryChange: 0, promotionChance: 25, confidenceChange: 20, burnoutChange: 0, mentorChange: 3, text: 'Your mentors guide you through projects and introduce you to decision-makers. You feel supported and ambitious.' },
+          jordan: { salaryChange: 0, promotionChance: 0, confidenceChange: -10, burnoutChange: 15, mentorChange: 0, text: 'Without sponsorship, high-visibility projects go to others. You feel isolated and invisible.' },
+          priya: { salaryChange: -2000, promotionChance: -10, confidenceChange: -20, burnoutChange: 20, mentorChange: 0, text: 'Excluded from informal networks where decisions are really made. You work harder but don\'t get recognized.' },
+          alex_indigenous: { salaryChange: 0, promotionChance: -5, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, text: 'Without a sponsor, you don\'t get stretch assignments that lead to advancement. Career growth stalls.' }
+        },
+        stat: {
+          title: 'The Mentorship Gap',
+          value: 'Men are 46% more likely to have a sponsor advocating for their career. This gap is even larger for women and minorities. Cross-gender mentoring is often fraught with assumptions.',
+          source: 'Catalyst Research & McKinsey'
+        }
+      },
+      {
+        year: 3,
+        title: 'The High-Profile Project',
+        situations: {
+          alex: 'You\'re assigned to a visible, company-critical project. Your manager says: "This is your opportunity to shine."',
+          jordan: 'You volunteer for the high-profile project but are assigned to a supporting role instead. A less experienced male colleague gets the lead.',
+          priya: 'You\'re not even asked to participate. When you inquire, you\'re told "communication might be an issue with the client."',
+          alex_indigenous: 'You\'re passed over. Leadership says they want someone with "traditional enterprise experience."'
+        },
+        outcomes: {
+          alex: { salaryChange: 6000, promotionChance: 30, confidenceChange: 25, burnoutChange: 5, mentorChange: 0, text: 'The project succeeds. You become known as a leader. Everyone wants to work with you next.' },
+          jordan: { salaryChange: 1000, promotionChance: 0, confidenceChange: -20, burnoutChange: 20, mentorChange: 0, text: 'You do the hard work. The male colleague gets credit. You feel invisible and undervalued.' },
+          priya: { salaryChange: 0, promotionChance: -10, confidenceChange: -25, burnoutChange: 25, mentorChange: 0, text: 'Excluded from growth opportunities. The implicit bias about your communication ability limits your advancement.' },
+          alex_indigenous: { salaryChange: 0, promotionChance: -10, confidenceChange: -20, burnoutChange: 20, mentorChange: 0, text: 'Denied the opportunity to prove yourself. Your ambitions are systematically limited.' }
+        },
+        stat: {
+          title: 'Opportunity Gaps',
+          value: 'Women and minorities receive fewer high-visibility assignments that lead to promotion. These "stretch opportunities" compound over time, creating exponential career divergence.',
+          source: 'Lean In & McKinsey Research'
+        }
+      },
+      {
+        year: 4,
+        title: 'Work-Life Integration',
+        situations: {
+          alex: 'The team is crunching on a deadline. You work late but it\'s praised as dedication. When you need flexibility, it\'s granted without question.',
+          jordan: 'You also work the long hours, but when you mention needing a day for personal reasons, colleagues question your commitment.',
+          priya: 'You work extremely long hours partly to prove yourself. No time for anything else. Burnout is setting in, but speaking up risks your visa status.',
+          alex_indigenous: 'You work hard but notice the culture assumes everyone is available 24/7. Family responsibilities are seen as not serious.'
+        },
+        outcomes: {
+          alex: { salaryChange: 3000, promotionChance: 10, confidenceChange: 5, burnoutChange: 30, mentorChange: 0, text: 'Your dedication is noted. You\'re considered for director roles. Flexible work is understood.' },
+          jordan: { salaryChange: 1500, promotionChance: 0, confidenceChange: -15, burnoutChange: 40, mentorChange: 0, text: 'You work the same hours but are labeled "not serious enough." Burnout is high; satisfaction is low.' },
+          priya: { salaryChange: 0, promotionChance: -10, confidenceChange: -20, burnoutChange: 50, mentorChange: 0, text: 'You\'re exhausted. Raising concerns about work-life balance feels risky with visa sponsorship complications.' },
+          alex_indigenous: { salaryChange: 0, promotionChance: 0, confidenceChange: -10, burnoutChange: 35, mentorChange: 0, text: 'The "always on" culture doesn\'t fit your values. You feel forced to choose between ambition and wellbeing.' }
+        },
+        stat: {
+          title: 'Burnout & Attrition',
+          value: 'Women in tech report 20% higher burnout. 57% of women plan to leave tech within 2 years. Indigenous workers earn $14,000 less annually despite equal work. The toll is unsustainable.',
+          source: 'Tech Talent Canada & ICTC'
+        }
+      },
+      {
+        year: 4,
+        title: 'Leadership Readiness',
+        situations: {
+          alex: 'You\'re identified as "leadership material." Your manager discusses director-track opportunities with enthusiasm.',
+          jordan: 'You\'re equally qualified but no one discusses leadership with you. You overhear: "She might not have the presence for director."',
+          priya: 'Your work is strong but you\'re not on any succession plan. New visa rules are tightening; your options feel limited.',
+          alex_indigenous: 'Despite your technical strength, leadership discussions don\'t include you. The assumption seems to be you\'ll stay technical.'
+        },
+        outcomes: {
+          alex: { salaryChange: 5000, promotionChance: 40, confidenceChange: 20, burnoutChange: 0, mentorChange: 1, text: 'You\'re groomed for leadership. Executive team knows your name. Your future in tech feels certain.' },
+          jordan: { salaryChange: 2000, promotionChance: 0, confidenceChange: -20, burnoutChange: 15, mentorChange: 0, text: 'No leadership path is offered. You feel stuck. The glass ceiling is becoming real.' },
+          priya: { salaryChange: 2000, promotionChance: -15, confidenceChange: -25, burnoutChange: 20, mentorChange: 0, text: 'You realize advancement is limited by visa status. Your long-term future in Canadian tech is uncertain.' },
+          alex_indigenous: { salaryChange: 1000, promotionChance: -10, confidenceChange: -15, burnoutChange: 15, mentorChange: 0, text: 'The ceiling feels lower for you. No one explicitly says it, but the pattern is clear.' }
+        },
+        stat: {
+          title: 'Leadership Pipeline',
+          value: 'Women hold only 9% of executive roles in Canadian tech. Visible minorities hold far fewer leadership positions. Immigrants and temporary residents face visa-related barriers to advancement. Indigenous Peoples represent 1.4% of tech workers and <1% of leaders.',
+          source: 'ICTC Digital Economy Report'
+        }
+      },
+      {
+        year: 5,
+        title: 'Five Years In: Where You Stand',
+        situations: {
+          alex: 'You\'re being interviewed for Director positions. Your network is strong. You feel like tech was the right choice.',
+          jordan: 'You\'re still a Senior Developer. You love coding but hate the trajectory. Many of your female friends left tech.',
+          priya: 'You\'re considering leaving Canada entirely. A US company offered you H1-B sponsorship for 46% more money, but visa uncertainty makes you hesitant.',
+          alex_indigenous: 'You\'ve done well technically, but advancement seems blocked. You\'ve been contacted by another tech company, but you\'re exhausted by the fight.'
+        },
+        outcomes: {
+          alex: { salaryChange: 30000, promotionChance: 0, confidenceChange: 25, burnoutChange: -10, mentorChange: 0, promoted: true, text: 'Director level: $158,000. You\'re planning your next move toward VP. Tech has been good to you.' },
+          jordan: { salaryChange: 5000, promotionChance: 0, confidenceChange: -20, burnoutChange: -5, mentorChange: 0, promoted: false, text: 'Senior Developer: $108,000. You love the work but hate the system. 57% of women like you are considering leaving.' },
+          priya: { salaryChange: 8000, promotionChance: 0, confidenceChange: -25, burnoutChange: 0, mentorChange: 0, promoted: false, text: 'Senior Developer: $87,500. Considering US offer. Canadian tech gap: you earn $52,800 while male peers earn $93,000+ in equivalent roles.' },
+          alex_indigenous: { salaryChange: 4000, promotionChance: 0, confidenceChange: -20, burnoutChange: 0, mentorChange: 0, promoted: false, text: 'Senior Developer: $82,000. Talented but tired. Indigenous tech workers earn $14,000 less. The system feels rigged.' }
+        },
+        stat: {
+          title: 'The Career Outcome Gap',
+          value: 'After 5 years of equal work: salary gaps of $45,000-$75,500 depending on identity. Women are 3x less likely to reach director level. Only 0.8% of tech workers are Indigenous. Career trajectories are determined not by talent, but by systemic barriers.',
+          source: 'ICTC Census & Tech Talent Canada Research'
+        }
+      }
+    ];
+
+    function render() {
+      const app = document.getElementById('app');
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const fontSize = config.font_size || defaultConfig.font_size;
+      const gameTitle = config.game_title || defaultConfig.game_title;
+      const introHeading = config.intro_heading || defaultConfig.intro_heading;
+
+      app.style.backgroundColor = bgColor;
+      app.style.color = textColor;
+      app.style.fontFamily = `${fontFamily}, sans-serif`;
+      app.style.fontSize = `${fontSize}px`;
+
+      let content = '';
+
+      switch(gameState.screen) {
+        case 'intro':
+          content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+          break;
+        case 'select':
+          content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+          break;
+        case 'playing':
+          content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+          break;
+        case 'outcome':
+          content = renderOutcome(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+          break;
+        case 'stats':
+          content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+          break;
+      }
+
+      app.innerHTML = content;
+      attachEventListeners();
+    }
+
+    function renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading) {
+      return `
+        <div class="min-h-full w-full flex items-center justify-center p-4 md:p-8">
+          <div class="max-w-3xl w-full text-center animate-fade">
+            <div class="mb-8">
+              <span class="text-6xl md:text-8xl">⚖️</span>
+            </div>
+            
+            <h1 class="font-display text-4xl md:text-6xl font-bold mb-4" style="font-size: ${fontSize * 3}px; color: ${textColor}">
+              ${gameTitle}
+            </h1>
+            
+            <p class="text-xl md:text-2xl mb-8 opacity-80" style="font-size: ${fontSize * 1.25}px; color: ${secondaryAction}">
+              ${introHeading}
+            </p>
+            
+            <div class="stat-card rounded-2xl p-6 md:p-8 mb-8" style="background: ${surfaceColor}">
+              <p class="text-lg md:text-xl leading-relaxed opacity-90" style="font-size: ${fontSize * 1.125}px">
+                Meet Alex and Jordan. They graduated from the same program, with the same grades, 
+                the same skills, and the same ambitions. They start the same job, on the same day, 
+                at the same company.
+              </p>
+              <p class="text-lg md:text-xl leading-relaxed mt-4 font-semibold" style="color: ${primaryAction}; font-size: ${fontSize * 1.125}px">
+                Five years later, their careers look very different. Not because of talent or effort—but because of something else entirely.
+              </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div class="stat-card rounded-xl p-4" style="background: ${surfaceColor}">
+                <div class="text-3xl mb-2">📊</div>
+                <div class="font-display font-bold" style="color: ${primaryAction}">Based on Real Data</div>
+                <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.875}px">From Canadian tech industry research</div>
+              </div>
+              <div class="stat-card rounded-xl p-4" style="background: ${surfaceColor}">
+                <div class="text-3xl mb-2">🎭</div>
+                <div class="font-display font-bold" style="color: ${primaryAction}">Experience Both Paths</div>
+                <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.875}px">See how small moments compound</div>
+              </div>
+              <div class="stat-card rounded-xl p-4" style="background: ${surfaceColor}">
+                <div class="text-3xl mb-2">💡</div>
+                <div class="font-display font-bold" style="color: ${primaryAction}">Reveal Hidden Biases</div>
+                <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.875}px">Understand systemic barriers</div>
+              </div>
+            </div>
+            
+            <button onclick="startGame()" class="px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:scale-105 animate-pulse-slow" 
+                    style="background: ${primaryAction}; color: white; font-size: ${fontSize * 1.125}px">
+              Begin the Journey →
+            </button>
+            
+            <p class="mt-6 text-sm opacity-60" style="font-size: ${fontSize * 0.75}px">
+              ⏱️ Takes about 5 minutes
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize) {
+      return `
+        <div class="min-h-full w-full flex items-center justify-center p-4 md:p-8">
+          <div class="max-w-5xl w-full animate-fade">
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-2" style="font-size: ${fontSize * 2}px">
+              Choose Your Perspective
+            </h2>
+            <p class="text-center opacity-70 mb-8" style="font-size: ${fontSize}px">
+              You'll experience how different identities shape career outcomes. Whose journey will you follow?
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              ${Object.entries(characters).map(([key, char]) => `
+                <button onclick="selectCharacter('${key}')" 
+                        class="character-card text-left rounded-2xl p-6 transition-all ${gameState.selectedCharacter === key ? 'ring-4' : ''}"
+                        style="background: ${surfaceColor}; ${gameState.selectedCharacter === key ? `ring-color: ${primaryAction};` : ''}">
+                  <div class="text-5xl mb-4">${char.emoji}</div>
+                  <h3 class="font-display text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px; color: ${gameState.selectedCharacter === key ? primaryAction : textColor}">
+                    ${char.name}
+                  </h3>
+                  <p class="text-sm opacity-60 mb-3" style="font-size: ${fontSize * 0.875}px; color: ${secondaryAction}">
+                    ${char.identity}
+                  </p>
+                  <p class="opacity-80" style="font-size: ${fontSize * 0.875}px">
+                    ${char.description}
+                  </p>
+                  ${gameState.selectedCharacter === key ? `
+                    <div class="mt-4 flex items-center gap-2" style="color: ${primaryAction}">
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                      </svg>
+                      <span class="font-semibold" style="font-size: ${fontSize * 0.875}px">Selected</span>
+                    </div>
+                  ` : ''}
+                </button>
+              `).join('')}
+            </div>
+            
+            <div class="text-center">
+              <button onclick="beginScenarios()" 
+                      class="px-8 py-4 rounded-xl font-semibold text-lg transition-all ${gameState.selectedCharacter ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'}"
+                      style="background: ${primaryAction}; color: white; font-size: ${fontSize * 1.125}px"
+                      ${!gameState.selectedCharacter ? 'disabled' : ''}>
+                Start as ${gameState.selectedCharacter ? characters[gameState.selectedCharacter].name : '...'} →
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize) {
+      const scenario = scenarios[gameState.currentScenario];
+      const charKey = gameState.selectedCharacter;
+      const outcome = scenario.outcomes[charKey];
+      const char = characters[charKey];
+      
+      // Calculate current stats
+      const statKey = charKey + 'Stats';
+      const stats = gameState[statKey];
+      
+      return `
+        <div class="min-h-full w-full p-4 md:p-8">
+          <div class="max-w-4xl mx-auto">
+            <!-- Progress Bar -->
+            <div class="mb-6">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-display text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">Year ${scenario.year} of 5</span>
+                <span class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">${gameState.currentScenario + 1} / ${scenarios.length}</span>
+              </div>
+              <div class="h-2 rounded-full overflow-hidden" style="background: ${surfaceColor}">
+                <div class="h-full progress-bar rounded-full" style="width: ${((gameState.currentScenario + 1) / scenarios.length) * 100}%; background: ${primaryAction}"></div>
+              </div>
+              
+              <!-- Timeline Dots -->
+              <div class="flex justify-between mt-3">
+                ${[1,2,3,4,5].map(year => `
+                  <div class="flex flex-col items-center">
+                    <div class="timeline-dot w-3 h-3 rounded-full ${scenario.year >= year ? 'active' : ''}" 
+                         style="background: ${scenario.year >= year ? primaryAction : surfaceColor}"></div>
+                    <span class="text-xs mt-1 opacity-50" style="font-size: ${fontSize * 0.625}px">Yr ${year}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <!-- Character Badge -->
+            <div class="flex items-center gap-3 mb-6 animate-slide">
+              <span class="text-4xl">${char.emoji}</span>
+              <div>
+                <div class="font-display font-bold" style="font-size: ${fontSize * 1.125}px">${char.name}</div>
+                <div class="text-sm opacity-60" style="font-size: ${fontSize * 0.75}px">${char.identity}</div>
+              </div>
+              <div class="ml-auto text-right">
+                <div class="font-display font-bold" style="color: ${secondaryAction}; font-size: ${fontSize * 1.25}px">$${stats.salary.toLocaleString()}</div>
+                <div class="text-xs opacity-60" style="font-size: ${fontSize * 0.625}px">Current Salary</div>
+              </div>
+            </div>
+            
+            <!-- Scenario Card -->
+            <div class="stat-card rounded-2xl p-6 md:p-8 mb-6 animate-fade" style="background: ${surfaceColor}">
+              <div class="text-sm font-display opacity-60 mb-2" style="font-size: ${fontSize * 0.75}px; color: ${secondaryAction}">
+                YEAR ${scenario.year}
+              </div>
+              <h2 class="font-display text-2xl md:text-3xl font-bold mb-4" style="font-size: ${fontSize * 1.75}px">
+                ${scenario.title}
+              </h2>
+              <p class="text-lg opacity-90 mb-6" style="font-size: ${fontSize * 1.125}px">
+                ${scenario.situations[charKey] || 'A scenario unfolds...'}
+              </p>
+              
+              <div class="border-t pt-6" style="border-color: ${textColor}20">
+                <div class="text-sm font-display opacity-60 mb-3" style="font-size: ${fontSize * 0.75}px">
+                  WHAT HAPPENS TO ${char.name.toUpperCase()}:
+                </div>
+                <div class="rounded-xl p-4 mb-4" style="background: ${primaryAction}20; border-left: 4px solid ${primaryAction}">
+                  <p class="leading-relaxed" style="font-size: ${fontSize}px">
+                    ${outcome.text}
+                  </p>
+                </div>
+                
+                <!-- Impact Indicators -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                  ${outcome.salaryChange !== 0 ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: ${outcome.salaryChange > 0 ? '#10b98120' : '#ef444420'}; color: ${outcome.salaryChange > 0 ? '#10b981' : '#ef4444'}; font-size: ${fontSize * 0.875}px">
+                      ${outcome.salaryChange > 0 ? '+' : ''}$${outcome.salaryChange.toLocaleString()} salary
+                    </span>
+                  ` : ''}
+                  ${outcome.promoted ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: #10b98120; color: #10b981; font-size: ${fontSize * 0.875}px">
+                      🎉 Promoted!
+                    </span>
+                  ` : outcome.promoted === false ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: #ef444420; color: #ef4444; font-size: ${fontSize * 0.875}px">
+                      ❌ Passed over
+                    </span>
+                  ` : ''}
+                  ${outcome.confidenceChange !== 0 ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: ${outcome.confidenceChange > 0 ? '#10b98120' : '#ef444420'}; color: ${outcome.confidenceChange > 0 ? '#10b981' : '#ef4444'}; font-size: ${fontSize * 0.875}px">
+                      ${outcome.confidenceChange > 0 ? '↑' : '↓'} Confidence
+                    </span>
+                  ` : ''}
+                  ${outcome.burnoutChange > 10 ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: #f59e0b20; color: #f59e0b; font-size: ${fontSize * 0.875}px">
+                      ⚠️ Burnout risk
+                    </span>
+                  ` : ''}
+                  ${outcome.mentorChange > 0 ? `
+                    <span class="px-3 py-1 rounded-full text-sm font-medium" style="background: #10b98120; color: #10b981; font-size: ${fontSize * 0.875}px">
+                      🤝 +1 Mentor
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Stat Reveal -->
+            <div class="stat-card rounded-2xl p-6 mb-6 animate-fade" style="background: linear-gradient(135deg, ${primaryAction}30, ${secondaryAction}30); animation-delay: 0.3s">
+              <div class="flex items-start gap-4">
+                <div class="text-3xl">📊</div>
+                <div>
+                  <div class="font-display font-bold mb-2" style="color: ${primaryAction}; font-size: ${fontSize * 1.125}px">
+                    ${scenario.stat.title}
+                  </div>
+                  <p class="leading-relaxed" style="font-size: ${fontSize}px">
+                    ${scenario.stat.value}
+                  </p>
+                  ${scenario.stat.source ? `
+                    <p class="text-xs opacity-50 mt-2" style="font-size: ${fontSize * 0.625}px">
+                      Source: ${scenario.stat.source}
+                    </p>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Solutions Section -->
+            ${scenario.solutions ? `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 animate-fade" style="animation-delay: 0.4s">
+                <!-- For Individuals -->
+                <div class="rounded-2xl p-6" style="background: ${primaryAction}15; border-left: 4px solid ${primaryAction}">
+                  <div class="font-display font-bold mb-3" style="color: ${primaryAction}; font-size: ${fontSize * 1.125}px">
+                    💪 What You Can Do
+                  </div>
+                  <div class="space-y-2">
+                    ${scenario.solutions.forIndividuals.map(sol => `
+                      <div>
+                        <div class="font-semibold text-sm mb-1" style="font-size: ${fontSize * 0.875}px">${sol.title}</div>
+                        <div class="text-xs opacity-80" style="font-size: ${fontSize * 0.75}px">${sol.desc}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                
+                <!-- For Leaders -->
+                <div class="rounded-2xl p-6" style="background: ${secondaryAction}15; border-left: 4px solid ${secondaryAction}">
+                  <div class="font-display font-bold mb-3" style="color: ${secondaryAction}; font-size: ${fontSize * 1.125}px">
+                    🤝 What Leaders Should Do
+                  </div>
+                  <div class="space-y-2">
+                    ${scenario.solutions.forLeaders.map(sol => `
+                      <div>
+                        <div class="font-semibold text-sm mb-1" style="font-size: ${fontSize * 0.875}px">${sol.title}</div>
+                        <div class="text-xs opacity-80" style="font-size: ${fontSize * 0.75}px">${sol.desc}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            
+            
+            <!-- Navigation -->
+            <div class="flex justify-between items-center">
+              <button onclick="switchCharacterTemporarily()" 
+                      class="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105"
+                      style="background: ${surfaceColor}; font-size: ${fontSize * 0.875}px">
+                👀 See other paths
+              </button>
+              
+              <button onclick="nextScenario()" 
+                      class="px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
+                      style="background: ${primaryAction}; color: white; font-size: ${fontSize}px">
+                ${gameState.currentScenario < scenarios.length - 1 ? 'Continue →' : 'See Final Results →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize) {
+      const salaryGap = gameState.alexStats.salary - gameState.jordanStats.salary;
+      const promotionGap = gameState.alexStats.promotions - gameState.jordanStats.promotions;
+      
+      return `
+        <div class="min-h-full w-full p-4 md:p-8 overflow-auto">
+          <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-8 animate-fade">
+              <h1 class="font-display text-4xl md:text-5xl font-bold mb-4" style="font-size: ${fontSize * 2.5}px">
+                Five Years Later
+              </h1>
+              <p class="text-xl opacity-80" style="font-size: ${fontSize * 1.25}px; color: ${secondaryAction}">
+                Same talent. Same effort. Different outcomes.
+              </p>
+            </div>
+            
+            <!-- Side by Side Comparison -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <!-- Alex -->
+              <div class="stat-card rounded-2xl p-6 animate-slide" style="background: ${surfaceColor}; animation-delay: 0.1s">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="text-4xl">${characters.alex.emoji}</span>
+                  <div>
+                    <div class="font-display font-bold text-xl" style="font-size: ${fontSize * 1.25}px">${characters.alex.name}</div>
+                    <div class="text-sm opacity-60" style="font-size: ${fontSize * 0.75}px">${characters.alex.identity}</div>
+                  </div>
+                </div>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Final Salary</span>
+                    <span class="font-display font-bold text-2xl" style="color: #10b981; font-size: ${fontSize * 1.5}px">$${gameState.alexStats.salary.toLocaleString()}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Title</span>
+                    <span class="font-semibold" style="color: ${primaryAction}; font-size: ${fontSize}px">Engineering Director</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Promotions</span>
+                    <span class="font-semibold" style="font-size: ${fontSize}px">${gameState.alexStats.promotions}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Mentors Gained</span>
+                    <span class="font-semibold" style="font-size: ${fontSize}px">${gameState.alexStats.mentors}</span>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1">
+                      <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Confidence</span>
+                      <span class="font-semibold" style="font-size: ${fontSize * 0.875}px">${Math.min(100, Math.max(0, gameState.alexStats.confidence))}%</span>
+                    </div>
+                    <div class="h-2 rounded-full overflow-hidden" style="background: ${textColor}20">
+                      <div class="h-full rounded-full" style="width: ${Math.min(100, Math.max(0, gameState.alexStats.confidence))}%; background: #10b981"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1">
+                      <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Burnout Level</span>
+                      <span class="font-semibold" style="font-size: ${fontSize * 0.875}px">${Math.min(100, gameState.alexStats.burnout)}%</span>
+                    </div>
+                    <div class="h-2 rounded-full overflow-hidden" style="background: ${textColor}20">
+                      <div class="h-full rounded-full" style="width: ${Math.min(100, gameState.alexStats.burnout)}%; background: #f59e0b"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Jordan -->
+              <div class="stat-card rounded-2xl p-6 animate-slide" style="background: ${surfaceColor}; animation-delay: 0.2s">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="text-4xl">${characters.jordan.emoji}</span>
+                  <div>
+                    <div class="font-display font-bold text-xl" style="font-size: ${fontSize * 1.25}px">${characters.jordan.name}</div>
+                    <div class="text-sm opacity-60" style="font-size: ${fontSize * 0.75}px">${characters.jordan.identity}</div>
+                  </div>
+                </div>
+                
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Final Salary</span>
+                    <span class="font-display font-bold text-2xl" style="color: #ef4444; font-size: ${fontSize * 1.5}px">$${gameState.jordanStats.salary.toLocaleString()}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Title</span>
+                    <span class="font-semibold" style="color: ${secondaryAction}; font-size: ${fontSize}px">Senior Developer</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Promotions</span>
+                    <span class="font-semibold" style="font-size: ${fontSize}px">${gameState.jordanStats.promotions}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Mentors Gained</span>
+                    <span class="font-semibold" style="font-size: ${fontSize}px">${gameState.jordanStats.mentors}</span>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1">
+                      <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Confidence</span>
+                      <span class="font-semibold" style="font-size: ${fontSize * 0.875}px">${Math.min(100, Math.max(0, gameState.jordanStats.confidence))}%</span>
+                    </div>
+                    <div class="h-2 rounded-full overflow-hidden" style="background: ${textColor}20">
+                      <div class="h-full rounded-full" style="width: ${Math.min(100, Math.max(0, gameState.jordanStats.confidence))}%; background: #ef4444"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1">
+                      <span class="opacity-70" style="font-size: ${fontSize * 0.875}px">Burnout Level</span>
+                      <span class="font-semibold" style="font-size: ${fontSize * 0.875}px">${Math.min(100, gameState.jordanStats.burnout)}%</span>
+                    </div>
+                    <div class="h-2 rounded-full overflow-hidden" style="background: ${textColor}20">
+                      <div class="h-full rounded-full" style="width: ${Math.min(100, gameState.jordanStats.burnout)}%; background: #ef4444"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Gap Visualization -->
+            <div class="stat-card rounded-2xl p-6 md:p-8 mb-8 animate-fade" style="background: linear-gradient(135deg, ${primaryAction}20, ${secondaryAction}20); animation-delay: 0.3s">
+              <h3 class="font-display text-2xl font-bold mb-6 text-center" style="font-size: ${fontSize * 1.5}px">
+                The Gap
+              </h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                  <div class="font-display text-4xl font-bold mb-2" style="color: #ef4444; font-size: ${fontSize * 2.5}px">
+                    $${salaryGap.toLocaleString()}
+                  </div>
+                  <div class="opacity-70" style="font-size: ${fontSize}px">Salary Gap After 5 Years</div>
+                </div>
+                <div>
+                  <div class="font-display text-4xl font-bold mb-2" style="color: #ef4444; font-size: ${fontSize * 2.5}px">
+                    ${promotionGap}
+                  </div>
+                  <div class="opacity-70" style="font-size: ${fontSize}px">Promotion Gap</div>
+                </div>
+                <div>
+                  <div class="font-display text-4xl font-bold mb-2" style="color: #ef4444; font-size: ${fontSize * 2.5}px">
+                    ${gameState.jordanStats.burnout - gameState.alexStats.burnout}%
+                  </div>
+                  <div class="opacity-70" style="font-size: ${fontSize}px">Additional Burnout</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Industry Stats -->
+            <div class="stat-card rounded-2xl p-6 md:p-8 mb-8 animate-fade" style="background: ${surfaceColor}; animation-delay: 0.4s">
+              <h3 class="font-display text-2xl font-bold mb-6" style="font-size: ${fontSize * 1.5}px">
+                📊 The Reality in Canadian Tech
+              </h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${primaryAction}; font-size: ${fontSize}px">Women in Tech</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">38.6%</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">of the workforce, but concentrated in non-technical roles</div>
+                  </div>
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${primaryAction}; font-size: ${fontSize}px">Women in Executive Roles</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">9%</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">vs 37% in broader economy</div>
+                  </div>
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${primaryAction}; font-size: ${fontSize}px">Indigenous Representation</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">0.8%</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">significantly below population share</div>
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${secondaryAction}; font-size: ${fontSize}px">Gender Pay Gap</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">$20,000</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">annual difference in average salary</div>
+                  </div>
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${secondaryAction}; font-size: ${fontSize}px">Racial Pay Gap</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">$14,200</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">visible minorities vs non-visible</div>
+                  </div>
+                  <div class="p-4 rounded-xl" style="background: ${textColor}10">
+                    <div class="font-display font-bold mb-1" style="color: ${secondaryAction}; font-size: ${fontSize}px">Planning to Leave</div>
+                    <div class="text-2xl font-bold mb-1" style="font-size: ${fontSize * 1.5}px">57%</div>
+                    <div class="text-sm opacity-70" style="font-size: ${fontSize * 0.75}px">of women plan to leave within 2 years</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="stat-card rounded-2xl p-6 md:p-8 text-center animate-fade" style="background: linear-gradient(135deg, ${primaryAction}, ${secondaryAction}); animation-delay: 0.5s">
+              <h3 class="font-display text-2xl md:text-3xl font-bold mb-4 text-white" style="font-size: ${fontSize * 1.75}px">
+                What Can We Do?
+              </h3>
+              <p class="text-lg mb-6 text-white opacity-90" style="font-size: ${fontSize * 1.125}px">
+                These aren't just statistics—they're people's lives and careers. Change requires awareness, advocacy, and action at every level.
+              </p>
+              <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="resetGame()" 
+                        class="px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
+                        style="background: white; color: ${primaryAction}; font-size: ${fontSize}px">
+                  🔄 Play Again
+                </button>
+              </div>
+            </div>
+            
+            <!-- Sources -->
+            <div class="mt-8 text-center opacity-60">
+              <p class="text-sm" style="font-size: ${fontSize * 0.75}px">
+                Data sources: Tech Talent Canada 2024, ICTC Digital Economy Report, McKinsey Women in the Workplace, Catalyst Research, Harvard Business Review
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function attachEventListeners() {
+      // Event listeners are attached via onclick attributes
+    }
+
+    // Game Functions
+    function startGame() {
+      gameState.screen = 'select';
+      render();
+    }
+
+    function selectCharacter(char) {
+      gameState.selectedCharacter = char;
+      render();
+    }
+
+    function beginScenarios() {
+      if (!gameState.selectedCharacter) return;
+      gameState.screen = 'playing';
+      gameState.currentScenario = 0;
+      // Reset stats
+      gameState.alexStats = { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 };
+      gameState.jordanStats = { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 };
+      render();
+    }
+
+    function seeOtherPerspective() {
+      gameState.selectedCharacter = gameState.selectedCharacter === 'alex' ? 'jordan' : 'alex';
+      render();
+    }
+
+    function nextScenario() {
+      // Apply outcomes to both characters
+      const scenario = scenarios[gameState.currentScenario];
+      
+      // Update Alex stats
+      gameState.alexStats.salary += scenario.alexOutcome.salaryChange;
+      gameState.alexStats.confidence += scenario.alexOutcome.confidenceChange;
+      gameState.alexStats.burnout += scenario.alexOutcome.burnoutChange;
+      gameState.alexStats.mentors += scenario.alexOutcome.mentorChange;
+      if (scenario.alexOutcome.promoted) gameState.alexStats.promotions++;
+      
+      // Update Jordan stats
+      gameState.jordanStats.salary += scenario.jordanOutcome.salaryChange;
+      gameState.jordanStats.confidence += scenario.jordanOutcome.confidenceChange;
+      gameState.jordanStats.burnout += scenario.jordanOutcome.burnoutChange;
+      gameState.jordanStats.mentors += scenario.jordanOutcome.mentorChange;
+      if (scenario.jordanOutcome.promoted) gameState.jordanStats.promotions++;
+      
+      if (gameState.currentScenario < scenarios.length - 1) {
+        gameState.currentScenario++;
+        render();
+      } else {
+        gameState.screen = 'stats';
+        render();
+      }
+    }
+
+    function resetGame() {
+      gameState = {
+        screen: 'intro',
+        selectedCharacter: null,
+        currentYear: 1,
+        totalYears: 5,
+        scenarios: [],
+        currentScenario: 0,
+        alexStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+        jordanStats: { salary: 75000, promotions: 0, confidence: 80, burnout: 10, mentors: 0 },
+        revealedStats: [],
+        playerChoices: []
+      };
+      render();
+    }
+
+    // Make functions globally accessible
+    window.startGame = startGame;
+    window.selectCharacter = selectCharacter;
+    window.beginScenarios = beginScenarios;
+    window.seeOtherPerspective = seeOtherPerspective;
+    window.nextScenario = nextScenario;
+    window.resetGame = resetGame;
+
+    // Element SDK Integration
+    async function onConfigChange(newConfig) {
+      config = { ...defaultConfig, ...newConfig };
+      render();
+    }
+
+    function mapToCapabilities(cfg) {
+      return {
+        recolorables: [
+          {
+            get: () => cfg.background_color || defaultConfig.background_color,
+            set: (value) => { cfg.background_color = value; window.elementSdk.setConfig({ background_color: value }); }
+          },
+          {
+            get: () => cfg.surface_color || defaultConfig.surface_color,
+            set: (value) => { cfg.surface_color = value; window.elementSdk.setConfig({ surface_color: value }); }
+          },
+          {
+            get: () => cfg.text_color || defaultConfig.text_color,
+            set: (value) => { cfg.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
+          },
+          {
+            get: () => cfg.primary_action || defaultConfig.primary_action,
+            set: (value) => { cfg.primary_action = value; window.elementSdk.setConfig({ primary_action: value }); }
+          },
+          {
+            get: () => cfg.secondary_action || defaultConfig.secondary_action,
+            set: (value) => { cfg.secondary_action = value; window.elementSdk.setConfig({ secondary_action: value }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => cfg.font_family || defaultConfig.font_family,
+          set: (value) => { cfg.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
+        },
+        fontSizeable: {
+          get: () => cfg.font_size || defaultConfig.font_size,
+          set: (value) => { cfg.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(cfg) {
+      return new Map([
+        ['game_title', cfg.game_title || defaultConfig.game_title],
+        ['intro_heading', cfg.intro_heading || defaultConfig.intro_heading]
+      ]);
+    }
+
+    // Initialize
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    } else {
+      render();
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cb503ff943e7dda',t:'MTc3MDY1NzM5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
