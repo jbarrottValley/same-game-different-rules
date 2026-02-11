@@ -383,21 +383,34 @@ outcomes: {
 
         let content = '';
 
-        switch (gameState.screen) {
-          case 'intro':
-            content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
-            break;
-          case 'select':
-            content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-            break;
-          case 'playing':
-            content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-            break;
-          case 'stats':
-            content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-            break;
-          default:
-            content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+       switch (gameState.screen) {
+  case 'intro':
+    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+    break;
+
+  case 'select':
+    content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+
+  case 'playing':
+    content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+
+  case 'stats':
+    content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+
+  case 'empower':
+    content = renderEmpowerment(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    break;
+
+  default:
+    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+}
+
+  content = renderEmpowerment(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+  break;
+
         }
 
         app.innerHTML = content;
@@ -723,7 +736,163 @@ outcomes: {
           </div>
         `;
       }
+function renderEmpowerment(surfaceColor, textColor, primaryAction, secondaryAction, fontSize) {
+  const mbTechWeekUrl = 'https://mbtechweek.ca/events/list/';
 
+  // You can edit this table anytime (it’s just data)
+  const eventMap = [
+    {
+      struggle: "You’re doing fine… but you feel a bit on the outside.",
+      events: [
+        "Ignition (MbTech Week launch)",
+        "Creative Careers: Manitoba-Made Innovation",
+        "Founders Coffee: Presented by Futurpreneur",
+        "Speed Networking: IT Sector",
+        "IDEA START AI TALK Series"
+      ],
+      why: "Low-pressure ways to meet people, hear real stories, and build a few friendly faces in the community."
+    },
+    {
+      struggle: "You’ve got skills, but confidence is wobbly (hello, imposter syndrome).",
+      events: [
+        "Breaking the Code of Confidence (women in tech panel)"
+      ],
+      why: "Practical strategies and honest stories—without the cringe."
+    },
+    {
+      struggle: "You’re tired of subtle stereotypes about who ‘fits’ in tech.",
+      events: [
+        "Rethinking Cybersecurity: Breaking the Myths Holding Women Back"
+      ],
+      why: "Names the bias without turning anyone into a cartoon villain—and gives language for what you’re seeing."
+    },
+    {
+      struggle: "You want career momentum, but you don’t have the same ‘built-in’ network.",
+      events: [
+        "Speed Networking: IT Sector"
+      ],
+      why: "A structured way to connect (no awkward ‘so… what do you do?’ loops)."
+    },
+    {
+      struggle: "You want to see what Manitoba’s tech scene actually looks like—and where you fit.",
+      events: [
+        "CreativeMornings Winnipeg",
+        "Creative Careers: Manitoba-Made Innovation"
+      ],
+      why: "Helps you picture possible paths—and reminds you there isn’t one ‘right’ kind of tech person."
+    },
+    {
+      struggle: "You care about people + community impact, not just ‘move fast and break things.’",
+      events: [
+        "Tech for Good: Aging Well and Supporting Families & Community"
+      ],
+      why: "Connects tech to real life—care, accessibility, and the stuff that actually matters."
+    },
+    {
+      struggle: "You’re a people leader (or a quiet leader). You want your team to feel better than this.",
+      events: [
+        "Ignition (MbTech Week launch)",
+        "Creative Careers: Manitoba-Made Innovation"
+      ],
+      why: "Go with your team. Talk after. Ask: ‘What felt familiar? What would make this easier here?’"
+    }
+  ];
+
+  const rows = eventMap.map(r => `
+    <tr style="border-top: 1px solid ${textColor}20;">
+      <td class="align-top py-3 pr-3" style="font-size:${fontSize * 0.9}px; width: 28%;">
+        <div class="font-semibold">${r.struggle}</div>
+      </td>
+      <td class="align-top py-3 pr-3" style="font-size:${fontSize * 0.9}px; width: 40%;">
+        <ul class="list-disc pl-5 space-y-1">
+          ${r.events.map(e => `<li>${e}</li>`).join('')}
+        </ul>
+      </td>
+      <td class="align-top py-3" style="font-size:${fontSize * 0.9}px; width: 32%;">
+        <div class="opacity-90">${r.why}</div>
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+    <div class="min-h-full w-full p-4 md:p-8 overflow-auto">
+      <div class="max-w-5xl mx-auto animate-fade">
+
+        <div class="text-center mb-8">
+          <div class="text-5xl mb-3">🧭</div>
+          <h2 class="font-display font-bold mb-3" style="font-size:${fontSize * 2}px;">
+            If This Felt Familiar
+          </h2>
+          <p class="opacity-80 mx-auto" style="max-width: 52rem; font-size:${fontSize * 1.1}px; color:${textColor}">
+            You’re not “too sensitive.” And you’re not alone.
+            Sometimes the challenge isn’t one big moment — it’s the extra friction.
+            The good news: there are real, practical ways to build confidence, connections, and momentum.
+          </p>
+        </div>
+
+        <div class="stat-card rounded-2xl p-6 md:p-8 mb-6" style="background:${surfaceColor}">
+          <h3 class="font-display font-bold mb-3" style="font-size:${fontSize * 1.25}px; color:${primaryAction}">
+            What to do next (the simple version)
+          </h3>
+          <ul class="list-disc pl-5 space-y-2" style="font-size:${fontSize}px;">
+            <li><span class="font-semibold">Pick one event</span> that matches what you’re feeling. You don’t need to “do everything.”</li>
+            <li><span class="font-semibold">Bring a buddy</span> if you can. If not, set a tiny goal: “talk to one person.”</li>
+            <li><span class="font-semibold">If you lead people</span> (title or not): go with curiosity. Notice who speaks, who gets interrupted, who gets credit.</li>
+            <li><span class="font-semibold">Afterward</span>, ask: “What would make our workplace easier for someone new?” Then actually change one thing.</li>
+          </ul>
+        </div>
+
+        <div class="stat-card rounded-2xl p-6 md:p-8 mb-6" style="background:${surfaceColor}">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="text-3xl">📅</div>
+            <div>
+              <h3 class="font-display font-bold" style="font-size:${fontSize * 1.25}px;">
+                Manitoba Tech Week picks (matched to the struggles in this game)
+              </h3>
+              <p class="opacity-70" style="font-size:${fontSize * 0.9}px;">
+                These are straight from the MB Tech Week events list. Use this like a menu.
+              </p>
+            </div>
+          </div>
+
+          <div class="overflow-auto rounded-xl" style="border: 1px solid ${textColor}20;">
+            <table class="w-full" style="border-collapse: collapse;">
+              <thead style="background:${textColor}08;">
+                <tr>
+                  <th class="text-left py-3 px-4" style="font-size:${fontSize * 0.85}px;">If you’re feeling…</th>
+                  <th class="text-left py-3 px-4" style="font-size:${fontSize * 0.85}px;">Try these events</th>
+                  <th class="text-left py-3 px-4" style="font-size:${fontSize * 0.85}px;">Why it helps</th>
+                </tr>
+              </thead>
+              <tbody class="px-4">
+                ${rows.replaceAll('<td', '<td class="px-4"')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-4">
+            <a href="${mbTechWeekUrl}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 font-semibold underline"
+               style="color:${primaryAction}; font-size:${fontSize}px;">
+              See the full Manitoba Tech Week event list →
+            </a>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button onclick="resetGame()"
+            class="px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
+            style="background:${primaryAction}; color:white; font-size:${fontSize}px;">
+            🔄 Play Again
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+      
       // ---------------------------
       // Game functions
       // ---------------------------
