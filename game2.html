@@ -422,31 +422,32 @@ switch (gameState.screen) {
     );
     break;
 
- case 'stats': {
-  content = renderFinalStats(
-    surfaceColor,
-    textColor,
-    primaryAction,
-    secondaryAction,
-    fontSize
-  );
+  case 'stats': {
+    content = renderFinalStats(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize
+    );
 
-  setTimeout(() => {
-    gameState.screen = 'empower';
-    render();
-  }, 15000);
+    setTimeout(() => {
+      gameState.screen = 'empower';
+      render();
+    }, 15000);
 
-  break;
-}
-case 'empower':
-  content = renderEmpowerment(
-    surfaceColor,
-    textColor,
-    primaryAction,
-    secondaryAction,
-    fontSize
-  );
-  break;
+    break;
+  }
+
+  case 'empower':
+    content = renderEmpowerment(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize
+    );
+    break;
 
   default:
     content = renderIntro(
@@ -460,7 +461,8 @@ case 'empower':
     );
 }
 
-        app.innerHTML = content;
+app.innerHTML = content;
+
       }
 
       function renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading) {
