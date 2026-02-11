@@ -388,30 +388,78 @@ outcomes: {
     content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
     break;
 
+switch (gameState.screen) {
+
+  case 'intro':
+    content = renderIntro(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize,
+      gameTitle,
+      introHeading
+    );
+    break;
+
   case 'select':
-    content = renderCharacterSelect(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    content = renderCharacterSelect(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize
+    );
     break;
 
   case 'playing':
-    content = renderScenario(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    content = renderScenario(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize
+    );
     break;
 
   case 'stats':
-    content = renderFinalStats(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-    break;
+  content = renderFinalStats(
+    surfaceColor,
+    textColor,
+    primaryAction,
+    secondaryAction,
+    fontSize
+  );
+
+  setTimeout(() => {
+    gameState.screen = 'empower';
+    render();
+  }, 15000); // 15 seconds
+
+  break;
+
 
   case 'empower':
-    content = renderEmpowerment(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
+    content = renderEmpowerment(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize
+    );
     break;
 
   default:
-    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
+    content = renderIntro(
+      surfaceColor,
+      textColor,
+      primaryAction,
+      secondaryAction,
+      fontSize,
+      gameTitle,
+      introHeading
+    );
 }
-
-  content = renderEmpowerment(surfaceColor, textColor, primaryAction, secondaryAction, fontSize);
-  break;
-
-        }
 
         app.innerHTML = content;
       }
