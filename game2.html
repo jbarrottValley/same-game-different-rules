@@ -299,7 +299,7 @@ outcomes: {
         },
 
         {
-          year: 3,
+          year: 4,
           title: 'The High-Profile Project',
           situations: {
             alex: "You’re assigned to a visible project. Your manager frames it as a growth opportunity.",
@@ -422,7 +422,7 @@ switch (gameState.screen) {
     );
     break;
 
- case 'stats':
+ case 'stats': {
   content = renderFinalStats(
     surfaceColor,
     textColor,
@@ -437,7 +437,7 @@ switch (gameState.screen) {
   }, 15000);
 
   break;
-
+}
 case 'empower':
   content = renderEmpowerment(
     surfaceColor,
