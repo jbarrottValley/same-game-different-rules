@@ -363,32 +363,27 @@ outcomes: {
       // ---------------------------
       // Rendering
       // ---------------------------
-      function render() {
-        const app = document.getElementById('app');
+  function render() {
+  const app = document.getElementById('app');
 
-        const bgColor = config.background_color || defaultConfig.background_color;
-        const surfaceColor = config.surface_color || defaultConfig.surface_color;
-        const textColor = config.text_color || defaultConfig.text_color;
-        const primaryAction = config.primary_action || defaultConfig.primary_action;
-        const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
-        const fontFamily = config.font_family || defaultConfig.font_family;
-        const fontSize = config.font_size || defaultConfig.font_size;
-        const gameTitle = config.game_title || defaultConfig.game_title;
-        const introHeading = config.intro_heading || defaultConfig.intro_heading;
+  const bgColor = config.background_color || defaultConfig.background_color;
+  const surfaceColor = config.surface_color || defaultConfig.surface_color;
+  const textColor = config.text_color || defaultConfig.text_color;
+  const primaryAction = config.primary_action || defaultConfig.primary_action;
+  const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+  const fontFamily = config.font_family || defaultConfig.font_family;
+  const fontSize = config.font_size || defaultConfig.font_size;
+  const gameTitle = config.game_title || defaultConfig.game_title;
+  const introHeading = config.intro_heading || defaultConfig.intro_heading;
 
-        app.style.backgroundColor = bgColor;
-        app.style.color = textColor;
-        app.style.fontFamily = `${fontFamily}, sans-serif`;
-        app.style.fontSize = `${fontSize}px`;
+  app.style.backgroundColor = bgColor;
+  app.style.color = textColor;
+  app.style.fontFamily = `${fontFamily}, sans-serif`;
+  app.style.fontSize = `${fontSize}px`;
 
-        let content = '';
+  let content = '';
 
-       switch (gameState.screen) {
-  case 'intro':
-    content = renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading);
-    break;
-
-switch (gameState.screen) {
+  switch (gameState.screen) {
 
   case 'intro':
     content = renderIntro(
@@ -462,8 +457,7 @@ switch (gameState.screen) {
 }
 
 app.innerHTML = content;
-
-      }
+ }
 
       function renderIntro(surfaceColor, textColor, primaryAction, secondaryAction, fontSize, gameTitle, introHeading) {
         return `
