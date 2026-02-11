@@ -422,7 +422,7 @@ switch (gameState.screen) {
     );
     break;
 
-  case 'stats':
+ case 'stats':
   content = renderFinalStats(
     surfaceColor,
     textColor,
@@ -434,20 +434,19 @@ switch (gameState.screen) {
   setTimeout(() => {
     gameState.screen = 'empower';
     render();
-  }, 15000); // 15 seconds
+  }, 15000);
 
   break;
 
-
-  case 'empower':
-    content = renderEmpowerment(
-      surfaceColor,
-      textColor,
-      primaryAction,
-      secondaryAction,
-      fontSize
-    );
-    break;
+case 'empower':
+  content = renderEmpowerment(
+    surfaceColor,
+    textColor,
+    primaryAction,
+    secondaryAction,
+    fontSize
+  );
+  break;
 
   default:
     content = renderIntro(
