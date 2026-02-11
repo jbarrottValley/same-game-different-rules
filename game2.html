@@ -379,7 +379,7 @@ outcomes: {
   app.style.backgroundColor = bgColor;
   app.style.color = textColor;
   app.style.fontFamily = `${fontFamily}, sans-serif`;
-  app.style.fontSize = `${fontSize}px`;
+  app.style.fontSize = `${fontSize + 2}px`;
 
   let content = '';
 
@@ -429,7 +429,7 @@ outcomes: {
     setTimeout(() => {
       gameState.screen = 'empower';
       render();
-    }, 15000);
+    }, 6000);
 
     break;
   }
@@ -579,11 +579,11 @@ app.innerHTML = content;
                 <span class="text-4xl">${char.emoji}</span>
                 <div>
                   <div class="font-display font-bold" style="font-size:${fontSize * 1.125}px">${char.name}</div>
-                  <div class="text-sm opacity-60" style="font-size:${fontSize * 0.75}px">${char.identity}</div>
+                  <div style="color:${textColor}CC">" style="font-size:${fontSize * 0.75}px">${char.identity}</div>
                 </div>
                 <div class="ml-auto text-right">
                   <div class="font-display font-bold" style="color:${secondaryAction}; font-size:${fontSize * 1.25}px">$${stats.salary.toLocaleString()}</div>
-                  <div class="text-xs opacity-60" style="font-size:${fontSize * 0.625}px">Current Salary</div>
+                  <div class="text-xs opacity-60"> style="font-size:${fontSize * 0.625}px">Current Salary</div>
                 </div>
               </div>
 
